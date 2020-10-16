@@ -1,17 +1,25 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DialogueManager = void 0;
+exports.DialogueManager = exports.template = void 0;
 function removeAllChildNodes(parent) {
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
     }
 }
+function template(strings, ...values) {
+    return { sections: strings.concat([]), values: values };
+}
+exports.template = template;
 class DialogueManager {
-    constructor(dialogue, id = "dialogue") {
+    constructor(artMaker, dialogue, id = "dialogue") {
         this.curIndex = 0;
         this.nodes = new Map();
-        this.store = new Map();
+        this.store = {
+            gotLeftPills: false,
+            gotRightPills: false,
+        };
+        this.artMaker = artMaker;
         this.dialogue = dialogue;
         const div = document.getElementById(id);
         if (div === null) {
@@ -28,9 +36,17 @@ class DialogueManager {
             }
             index++;
         }
-        this.updateDom();
+        this.update();
     }
-    /** updates the current index and updates the DOM */
+    templateToString(str) {
+        if (typeof str === "string")
+            return str;
+        let ret = "";
+        for (let i = 0; i < str.values.length; i++) {
+            ret += str.sections[i] + str.values[i](this.store);
+        }
+        return ret + str.sections[str.sections.length - 1];
+    }
     advance(tag) {
         if (tag === undefined) {
             this.curIndex++;
@@ -39,35 +55,42 @@ class DialogueManager {
             }
         }
         else {
-            const nodeIndex = this.nodes.get(tag);
+            const str = typeof tag === "string" ? tag : tag(this.store);
+            const nodeIndex = this.nodes.get(str);
             if (nodeIndex === undefined) {
-                throw new Error(`could not find node with tag "${tag}"`);
+                throw new Error(`could not find node with tag "${str}"`);
             }
             this.curIndex = nodeIndex;
         }
-        this.updateDom();
+        this.update();
     }
-    /** makes button with proper onclick */
     makeButton(choice) {
         const button = document.createElement("button");
-        button.innerText = choice.text;
+        button.innerText = this.templateToString(choice.text);
         button.onclick = () => {
+            if (choice.callback !== undefined)
+                choice.callback(this.store);
             this.advance(choice.tag);
         };
         return button;
     }
-    updateDom() {
+    update() {
+        console.log("update");
         removeAllChildNodes(this.div);
         const node = this.dialogue[this.curIndex];
+        if (node.seed !== undefined && this.prevSeed !== node.seed) {
+            this.prevSeed = node.seed;
+            this.artMaker.art(node.seed);
+        }
         const p = document.createElement("p");
-        p.innerText = node.text;
+        p.innerText = this.templateToString(node.text);
         const buttons = node.choices
             .filter((n) => n.showIf === undefined || n.showIf(this.store))
             .map((n) => this.makeButton(n));
         this.div.appendChild(p);
         for (const b of buttons) {
             this.div.appendChild(b);
-            this.div.innerHTML += " ";
+            this.div.innerHTML;
         }
     }
 }
@@ -75,64 +98,139 @@ exports.DialogueManager = DialogueManager;
 
 },{}],2:[function(require,module,exports){
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const art_maker_1 = __importStar(require("art-maker"));
+const art_maker_1 = __importDefault(require("art-maker"));
 const dialogue_1 = require("./dialogue");
 const artMaker = new art_maker_1.default(128);
-const seed = art_maker_1.Rand.randString(8);
-console.log(seed);
-artMaker.art(seed);
 //ijhxlzqt (seed for the alabaster white platform)
 //mjfaivcm (cool swirl)
 //yxcmyspo (calming baubles)
 //tffpepaa (soft radial)
 //sirfipcv (portal to green world)
-const dialogueManager = new dialogue_1.DialogueManager([
+//xhvlluag (swirly red)
+//bvqrguwx (pink rising squares)
+//zqfxjnru (bubbling lines)
+//krvdqlql (harsh vignette with red center)
+//kqnnhnju (blobby pink)
+//lgudjfdv (neon displaced squares)
+//fuhsoyip (dark boiling lines)
+//vxxbkuya (dense line kaliedoscope)
+new dialogue_1.DialogueManager(artMaker, [
     {
-        tag: "abcd",
-        seed: "randomseed",
+        seed: "ijhxlzqt",
         text: "You stand in the center platform. It is alabaster white and incredibly ornate; " +
             "very fine geometric patterns radiate out from the center. Before you are two paths.",
         choices: [
             {
                 text: "go left",
+                tag: "left path",
             },
             {
                 text: "go right",
-                tag: "abcd",
+                tag: "right path",
             },
         ],
     },
     {
-        tag: "defg",
-        seed: "randomseed",
-        text: "something else",
+        tag: "left path",
+        seed: "bvqrguwx",
+        text: "You approach the end of the path and arrive at a door. You find yourself " +
+            "in an unusually tall hospital room. At the center is a slow-moving " +
+            "swarm of flying hospital beds.",
         choices: [
             {
-                text: "foo",
+                text: "attempt to climb the beds",
+            },
+        ],
+    },
+    {
+        text: "You leap and clamber from bed to bed. Some move you in flat circles, and others float " +
+            "up and down, taking you to new heights. Multiple times you nearly miss a jump or lose your footing. " +
+            "At the very top of this treacherous climb, you find another bottle of pills suspended in midair. " +
+            "One more leap and you might be able to reach it.",
+        choices: [
+            {
+                text: "leap for the pills",
+                callback: (map) => {
+                    map.gotLeftPills = true;
+                },
+            },
+        ],
+    },
+    {
+        seed: "zqfxjnru",
+        text: "As you grab the pills, all of the beds beneath you instantly vanish. You plummet. " +
+            "As you hit the ground, your vision goes dark.",
+        choices: [
+            {
+                text: "try to wake",
+                tag: "center platform later",
+            },
+        ],
+    },
+    {
+        tag: "right path",
+        text: "You traverse the path which leads you to a door. Beyond the door is a long hospital hallway. " +
+            "shadowy spectres of paragliders flit across the floor. The floor is falling away in places, " +
+            "revealing the endless void below.",
+        choices: [
+            {
+                text: "attempt to cross the hallway",
+            },
+        ],
+    },
+    {
+        text: "You narrowly avoid the shadows and pits to reach the end of the hallway. " +
+            "A bottle of pills is floating on a small platform just beyond the fragmented end " +
+            "of the threacherous corridor.",
+        choices: [
+            {
+                text: "leap for the pills",
+                callback: (map) => {
+                    map.gotRightPills = true;
+                },
+            },
+        ],
+    },
+    {
+        text: "As you grab the pills, gravity shifts and you begin to fall back, back through the hallway. " +
+            "Your vision goes black.",
+        choices: [
+            {
+                text: "try to wake",
+                tag: "center platform later",
+            },
+        ],
+    },
+    {
+        tag: "center platform later",
+        text: dialogue_1.template `You open your eyes and find that you are back at the white center platform above the void.\
+    You have already gone the ${(map) => map.gotLeftPills && map.gotRightPills
+            ? "left and right"
+            : map.gotRightPills
+                ? "right"
+                : "left"} path. ${(map) => map.gotLeftPills && map.gotRightPills
+            ? "In the space between both paths, fragmented pieces of the all-to-familiar hospital tiling " +
+                "rise from the void to form stepping stones leading to a swirling ball of white light. " +
+                "You can hear rushing wind in the distance."
+            : ""}`,
+        choices: [
+            {
+                showIf: (map) => !map.gotLeftPills,
+                text: "go left",
+                tag: "left path",
             },
             {
-                text: "bar",
-                tag: "abcd",
+                showIf: (map) => !map.gotRightPills,
+                text: "go right",
+                tag: "right path",
+            },
+            {
+                showIf: (map) => map.gotLeftPills && map.gotRightPills,
+                text: "take the path",
             },
         ],
     },

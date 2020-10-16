@@ -1,14 +1,27 @@
+import ArtMaker from "art-maker";
+
+/*
+export interface Store {
+  [key: string]: number;
+}
+*/
+
+export interface Store {
+  gotLeftPills: boolean;
+  gotRightPills: boolean;
+}
+
 interface ChoiceNode {
-  callback?: (store: Map<string, any>) => void;
-  showIf?: (store: Map<string, any>) => boolean;
-  text: string;
-  tag?: string;
+  callback?: (store: Store) => void;
+  showIf?: (store: Store) => boolean;
+  text: string | StringTemplate;
+  tag?: string | ((store: Store) => string);
 }
 
 interface DialogueNode {
   seed?: string;
   tag?: string;
-  text: string;
+  text: string | StringTemplate;
   choices: ChoiceNode[];
 }
 
@@ -18,14 +31,32 @@ function removeAllChildNodes(parent: HTMLElement) {
   }
 }
 
+type StringTemplate = {
+  sections: string[];
+  values: ((map: Store) => string)[];
+};
+
+export function template(
+  strings: TemplateStringsArray,
+  ...values: ((map: Store) => string)[]
+): StringTemplate {
+  return { sections: strings.concat([]), values: values };
+}
+
 export class DialogueManager {
   private dialogue: DialogueNode[];
   private curIndex = 0;
   private nodes: Map<string, number> = new Map();
-  private store: Map<string, any> = new Map();
+  private store: Store = {
+    gotLeftPills: false,
+    gotRightPills: false,
+  };
   private div: HTMLElement;
+  private artMaker: ArtMaker;
+  private prevSeed?: string;
 
-  constructor(dialogue: DialogueNode[], id = "dialogue") {
+  constructor(artMaker: ArtMaker, dialogue: DialogueNode[], id = "dialogue") {
+    this.artMaker = artMaker;
     this.dialogue = dialogue;
 
     const div = document.getElementById(id);
@@ -45,42 +76,56 @@ export class DialogueManager {
       index++;
     }
 
-    this.updateDom();
+    this.update();
   }
 
-  /** updates the current index and updates the DOM */
-  private advance(tag?: string) {
+  templateToString(str: string | StringTemplate) {
+    if (typeof str === "string") return str;
+    let ret = "";
+    for (let i = 0; i < str.values.length; i++) {
+      ret += str.sections[i] + str.values[i](this.store);
+    }
+    return ret + str.sections[str.sections.length - 1];
+  }
+
+  private advance(tag?: string | ((store: Store) => string)) {
     if (tag === undefined) {
       this.curIndex++;
       if (this.curIndex >= this.dialogue.length) {
         throw new Error("current index somehow advanced past end of dialogue");
       }
     } else {
-      const nodeIndex = this.nodes.get(tag);
+      const str = typeof tag === "string" ? tag : tag(this.store);
+      const nodeIndex = this.nodes.get(str);
       if (nodeIndex === undefined) {
-        throw new Error(`could not find node with tag "${tag}"`);
+        throw new Error(`could not find node with tag "${str}"`);
       }
       this.curIndex = nodeIndex;
     }
-    this.updateDom();
+    this.update();
   }
 
-  /** makes button with proper onclick */
   private makeButton(choice: ChoiceNode) {
     const button = document.createElement("button");
-    button.innerText = choice.text;
+    button.innerText = this.templateToString(choice.text);
     button.onclick = () => {
+      if (choice.callback !== undefined) choice.callback(this.store);
       this.advance(choice.tag);
     };
     return button;
   }
 
-  private updateDom() {
+  private update() {
+    console.log("update");
     removeAllChildNodes(this.div);
 
     const node = this.dialogue[this.curIndex];
+    if (node.seed !== undefined && this.prevSeed !== node.seed) {
+      this.prevSeed = node.seed;
+      this.artMaker.art(node.seed);
+    }
     const p = document.createElement("p");
-    p.innerText = node.text;
+    p.innerText = this.templateToString(node.text);
 
     const buttons = node.choices
       .filter((n) => n.showIf === undefined || n.showIf(this.store))
@@ -89,7 +134,7 @@ export class DialogueManager {
     this.div.appendChild(p);
     for (const b of buttons) {
       this.div.appendChild(b);
-      this.div.innerHTML += " ";
+      this.div.innerHTML;
     }
   }
 }
