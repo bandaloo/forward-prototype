@@ -169,7 +169,6 @@ new DialogueManager(artMaker, [
 
   // clock level
   {
-    tag: "start",
     seed: "yxcmyspo",
     text:
       "Your eyes slowly come into focus, and you realize you are peering into the hospital from the outside." +
@@ -185,9 +184,9 @@ new DialogueManager(artMaker, [
     text:
       "Among the array of rooms \u2014 some with doctors, nurses, patients, some empty \u2014 " +
       "you find your own, and focus in on it. You see your own body, in your bed, unmoving, " +
-      "as two doctors in white lab coats talk over your body, one male and one female. Shortly, a nurse " +
+      "as two doctors in white lab coats talk over it, one male and one female. Shortly, a nurse " +
       "in a green scrub walks in, followed by your parents. Your mother swiftly walks over to the bedside " +
-      "and covers her mouth with an expression that could be either fear, relief, or a mix of both.",
+      "and covers her mouth \u2014 expression that could be either fear, relief, or a mix of both.",
     choices: [
       {
         text: "continue",
@@ -198,7 +197,7 @@ new DialogueManager(artMaker, [
   {
     text:
       "Your disembodied view of the scene moves in closer until you are in the room with the others, hovering low, " +
-      "just above the height of the bedframe. You see yourself wake up, look around you while shifting around " +
+      "just above the height of the bedframe. You see yourself wake up and look around while shifting around " +
       "slightly. Your parents go between shouting with joy and trying to be quiet in order to not overwhelm you.",
     choices: [
       {
@@ -209,7 +208,7 @@ new DialogueManager(artMaker, [
 
   {
     text:
-      "For a moment, everything goes dark. In the next instant, it appears that you are in your own body once again. " +
+      "For a moment, everything goes dark. In the next instant, you are in your own body once again. " +
       "You turn your head towards the alarm clock.",
     choices: [
       {
@@ -288,17 +287,22 @@ new DialogueManager(artMaker, [
         tag: "classical music",
         callback: (map: Store) => {
           map.clockMood++;
+          map.musicChoice = "classical";
         },
       },
       {
         text: "play rock",
         tag: "rock music",
+        callback: (map: Store) => {
+          map.musicChoice = "rock";
+        },
       },
       {
         text: "play punk",
         tag: "punk music",
         callback: (map: Store) => {
           map.clockMood--;
+          map.musicChoice = "punk";
         },
       },
     ],
@@ -336,6 +340,30 @@ new DialogueManager(artMaker, [
       {
         text: "continue",
         tag: "after music",
+      },
+    ],
+  },
+
+  {
+    tag: "after music",
+    seed: "waqgjphv",
+    text: template`"Care to play a game to pass the time?" asks the clock. "How about an AI's favorite war game, tic-tac-toe?${(
+      map: Store
+    ) =>
+      map.musicChoice === "classical"
+        ? ' This music is a perfect for a game of minds!"'
+        : map.musicChoice === "punk"
+        ? " Although, this grating music is going to make it a bit tricky to hone in on the correct play " +
+          'among the multitudes of strategic options, however."'
+        : map.musicChoice === "rock"
+        ? " The rock music will have to do as a score to this battle of wits."
+        : ""}`,
+    choices: [
+      {
+        text: "accept",
+      },
+      {
+        text: "decline",
       },
     ],
   },

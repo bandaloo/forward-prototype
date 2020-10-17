@@ -3,6 +3,7 @@ import ArtMaker from "art-maker";
 export interface Store {
   gotLeftPills: boolean;
   gotRightPills: boolean;
+  musicChoice?: "classical" | "rock" | "punk";
   clockMood: number;
 }
 
