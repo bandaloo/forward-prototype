@@ -1,14 +1,9 @@
 import ArtMaker from "art-maker";
 
-/*
-export interface Store {
-  [key: string]: number;
-}
-*/
-
 export interface Store {
   gotLeftPills: boolean;
   gotRightPills: boolean;
+  clockMood: number;
 }
 
 interface ChoiceNode {
@@ -19,7 +14,8 @@ interface ChoiceNode {
 }
 
 interface DialogueNode {
-  seed?: string;
+  callback?: (store: Store) => void;
+  seed?: string | ((store: Store) => string);
   tag?: string;
   text: string | StringTemplate;
   choices: ChoiceNode[];
@@ -50,6 +46,7 @@ export class DialogueManager {
   private store: Store = {
     gotLeftPills: false,
     gotRightPills: false,
+    clockMood: 0,
   };
   private div: HTMLElement;
   private artMaker: ArtMaker;
@@ -76,6 +73,10 @@ export class DialogueManager {
       index++;
     }
 
+    // TODO get rid of this
+    const startIndex = this.nodes.get("start");
+    this.curIndex = startIndex ?? 0;
+
     this.update();
   }
 
@@ -92,7 +93,7 @@ export class DialogueManager {
     if (tag === undefined) {
       this.curIndex++;
       if (this.curIndex >= this.dialogue.length) {
-        throw new Error("current index somehow advanced past end of dialogue");
+        throw new Error("current index advanced past end of dialogue");
       }
     } else {
       const str = typeof tag === "string" ? tag : tag(this.store);
@@ -102,6 +103,8 @@ export class DialogueManager {
       }
       this.curIndex = nodeIndex;
     }
+    const node = this.dialogue[this.curIndex];
+    if (node.callback !== undefined) node.callback(this.store);
     this.update();
   }
 
@@ -121,8 +124,10 @@ export class DialogueManager {
 
     const node = this.dialogue[this.curIndex];
     if (node.seed !== undefined && this.prevSeed !== node.seed) {
-      this.prevSeed = node.seed;
-      this.artMaker.art(node.seed);
+      const seed =
+        typeof node.seed === "string" ? node.seed : node.seed(this.store);
+      this.prevSeed = seed;
+      this.artMaker.art(seed);
     }
     const p = document.createElement("p");
     p.innerText = this.templateToString(node.text);

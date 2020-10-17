@@ -16,8 +16,22 @@ const artMaker = new ArtMaker(128);
 //lgudjfdv (neon displaced squares)
 //fuhsoyip (dark boiling lines)
 //vxxbkuya (dense line kaliedoscope)
+//hnjlowce (bitmappy squares)
+//zviirsak (colorful warping)
+//iixxhnso (white red black distortion)
+//lymkoqxu (red swirling)
+//rmqhumlc (blue digital squares)
+//owrzgxsq (carpet blue)
+//snvpllrd (blue midi)
+//iappagka (blue triangles)
+//vlrtdoaf (darkened bit grid sides)
+//uwmodqhf (crayon spiral)
+//rczxhezc (zooming blue)
+//fsfhnogn (flower)
+//axxvygkv (mouse red spiral)
 
 new DialogueManager(artMaker, [
+  // bed level
   {
     seed: "ijhxlzqt",
     text:
@@ -79,6 +93,7 @@ new DialogueManager(artMaker, [
   },
 
   {
+    seed: "gdkcrxml",
     tag: "right path",
     text:
       "You traverse the path which leads you to a door. Beyond the door is a long hospital hallway. " +
@@ -107,6 +122,7 @@ new DialogueManager(artMaker, [
   },
 
   {
+    seed: "iixxhnso",
     text:
       "As you grab the pills, gravity shifts and you begin to fall back, back through the hallway. " +
       "Your vision goes black.",
@@ -119,6 +135,7 @@ new DialogueManager(artMaker, [
   },
 
   {
+    seed: "ijhxlzqt",
     tag: "center platform later",
     text: template`You open your eyes and find that you are back at the white center platform above the void.\
     You have already gone the ${(map: Store) =>
@@ -146,6 +163,179 @@ new DialogueManager(artMaker, [
       {
         showIf: (map: Store) => map.gotLeftPills && map.gotRightPills,
         text: "take the path",
+      },
+    ],
+  },
+
+  // clock level
+  {
+    tag: "start",
+    seed: "yxcmyspo",
+    text:
+      "Your eyes slowly come into focus, and you realize you are peering into the hospital from the outside." +
+      "You can see through the walls. Looking at the hospital in this way reminds you of a dollhouse.",
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    text:
+      "Among the array of rooms \u2014 some with doctors, nurses, patients, some empty \u2014 " +
+      "you find your own, and focus in on it. You see your own body, in your bed, unmoving, " +
+      "as two doctors in white lab coats talk over your body, one male and one female. Shortly, a nurse " +
+      "in a green scrub walks in, followed by your parents. Your mother swiftly walks over to the bedside " +
+      "and covers her mouth with an expression that could be either fear, relief, or a mix of both.",
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    text:
+      "Your disembodied view of the scene moves in closer until you are in the room with the others, hovering low, " +
+      "just above the height of the bedframe. You see yourself wake up, look around you while shifting around " +
+      "slightly. Your parents go between shouting with joy and trying to be quiet in order to not overwhelm you.",
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    text:
+      "For a moment, everything goes dark. In the next instant, it appears that you are in your own body once again. " +
+      "You turn your head towards the alarm clock.",
+    choices: [
+      {
+        text: "speak to the clock",
+      },
+    ],
+  },
+
+  {
+    text: `"Hi"
+
+    "Hello there," the clock responds.`,
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    seed: "bbhkopmy",
+    text: `The blue LCD digits on the face rearrange to create a face with two eyes. "I've been watching you sleep."
+
+      "Oh," you respond.`,
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    text: `"I \u2014 I'm not sure I know what's real anymore."
+
+    "That sounds awful!" the clock replies. "Well, I can assure you that I'm real, if that is any help. "
+
+    "Hmm\u2026." You are not sure that this is helpful.`,
+    choices: [
+      {
+        text: `"I'm not so sure"`,
+        tag: "not so sure real",
+        callback: (map: Store) => {
+          map.clockMood--;
+        },
+      },
+      {
+        text: `"Sure\u2026"`,
+        tag: "clock what happened",
+      },
+    ],
+  },
+
+  {
+    seed: "fakfrsab",
+    tag: "not so sure real",
+    text: `"Okay, that stings a bit," says the clock. "Quite frankly, I'm not too sure you're real either."`,
+    choices: [
+      {
+        text: "continue",
+        tag: "clock what happened",
+      },
+    ],
+  },
+
+  {
+    seed: "iappagka",
+    tag: "clock what happened",
+    text: `"Do you know what happened?" asks the clock.
+
+    "I was in the sky\u2026 I think\u2026 and I fell."
+
+    "Youch, man." There is a pause. "Would some tunes help? I do love Chopin."`,
+    choices: [
+      {
+        text: "play classical",
+        tag: "classical music",
+        callback: (map: Store) => {
+          map.clockMood++;
+        },
+      },
+      {
+        text: "play rock",
+        tag: "rock music",
+      },
+      {
+        text: "play punk",
+        tag: "punk music",
+        callback: (map: Store) => {
+          map.clockMood--;
+        },
+      },
+    ],
+  },
+
+  {
+    tag: "classical music",
+    seed: "snvpllrd",
+    text: `"Wonderful! This is one of my favorites," the clock exclaims, seemingly satisfied.`,
+    choices: [
+      {
+        text: "continue",
+        tag: "after music",
+      },
+    ],
+  },
+
+  {
+    tag: "rock music",
+    seed: "hmmmriuq",
+    text: `"Alright. Not exactly my scene, but I could get into this," says the clock.`,
+    choices: [
+      {
+        text: "continue",
+        tag: "after music",
+      },
+    ],
+  },
+
+  {
+    tag: "punk music",
+    seed: "waqgjphv",
+    text: `"Really? No, sure, that's alright," mutters the clock. It seems irritated.`,
+    choices: [
+      {
+        text: "continue",
+        tag: "after music",
       },
     ],
   },
