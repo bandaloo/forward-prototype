@@ -186,7 +186,7 @@ new DialogueManager(artMaker, [
       "you find your own, and focus in on it. You see your own body, in your bed, unmoving, " +
       "as two doctors in white lab coats talk over it, one male and one female. Shortly, a nurse " +
       "in a green scrub walks in, followed by your parents. Your mother swiftly walks over to the bedside " +
-      "and covers her mouth \u2014 expression that could be either fear, relief, or a mix of both.",
+      "and covers her mouth \u2014 an expression that could be either fear, relief, or a mix of both.",
     choices: [
       {
         text: "continue",
@@ -207,6 +207,7 @@ new DialogueManager(artMaker, [
   },
 
   {
+    tag: "start",
     text:
       "For a moment, everything goes dark. In the next instant, you are in your own body once again. " +
       "You turn your head towards the alarm clock.",
@@ -346,7 +347,6 @@ new DialogueManager(artMaker, [
 
   {
     tag: "after music",
-    seed: "waqgjphv",
     text: template`"Care to play a game to pass the time?" asks the clock. "How about an AI's favorite war game, tic-tac-toe?${(
       map: Store
     ) =>
@@ -354,17 +354,229 @@ new DialogueManager(artMaker, [
         ? ' This music is a perfect for a game of minds!"'
         : map.musicChoice === "punk"
         ? " Although, this grating music is going to make it a bit tricky to hone in on the correct play " +
-          'among the multitudes of strategic options, however."'
+          'among the multitudes of strategic options."'
         : map.musicChoice === "rock"
         ? " The rock music will have to do as a score to this battle of wits."
         : ""}`,
     choices: [
       {
         text: "accept",
+        tag: "accept game",
       },
       {
         text: "decline",
+        tag: "decline game",
       },
     ],
+  },
+
+  {
+    tag: "accept game",
+    callback: (map: Store) => {
+      map.playerWentFirst = map.clockMood > 0;
+    },
+    text: template`A tic-tac-toe board etches itself into the wall across from your bed.
+
+    "${(map: Store) =>
+      map.playerWentFirst ? "You" : "I'll"} go first," the clock says. \
+    ${(map: Store) =>
+      map.playerWentFirst
+        ? "With your mind, you scratch"
+        : "Without moving, the clock scratches"} the first X on the wall. ${(
+      map: Store
+    ) =>
+      map.playerWentFirst
+        ? ""
+        : "In response, you etch an O into the wall simply by thinking about where it will go."} \
+"Strange game\u2026" you think to yourself.`,
+    choices: [
+      {
+        text: "continue",
+      },
+    ],
+  },
+
+  {
+    text:
+      "Very soon, you notice the clock doesn't have much of a strategy. " +
+      "It leaves you open to win the game in a single move.",
+    choices: [
+      {
+        text: "play the winning move",
+        tag: "you win game",
+      },
+      {
+        text: "force a draw",
+        tag: "you draw game",
+      },
+      {
+        text: "throw the game",
+        tag: "you lose game",
+      },
+    ],
+  },
+
+  {
+    tag: "you lose game",
+    text:
+      '"First chess, then go, now tic-tac-toe! AI has truly mastered the domain of all games once ' +
+      'thought to necessitate the creativity and critical thinking faculties of natural intelligence," ' +
+      "the clock gloats.",
+    choices: [
+      {
+        text: "continue",
+        tag: "clock mad",
+      },
+    ],
+    callback: (map: Store) => {
+      map.clockMood++;
+    },
+  },
+
+  {
+    tag: "you draw game",
+    text:
+      '"Well, that\'s a little bit of a boring outcome," the clock complains.',
+    choices: [
+      {
+        text: "continue",
+        tag: "clock mad",
+      },
+    ],
+    callback: (map: Store) => {
+      map.clockMood--;
+    },
+  },
+
+  {
+    tag: "you win game",
+    text:
+      "\"That's not possible. Impossible! IMPOSSIBLE!\" The clock's voice grows deeper and louder.",
+    choices: [
+      {
+        text: "continue",
+        tag: "clock mad",
+      },
+    ],
+    callback: (map: Store) => {
+      map.clockMood -= 2;
+    },
+  },
+
+  {
+    tag: "clock mad",
+    text: template`The lights in the room slowly fade to a dim red. The face of the clock\
+    displays the message in red digital lettering:
+
+CALCULATION: ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 24} DEAD, \
+${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
+
+"DETONATION IMMINENT. THIS IS YOUR FAULT."`,
+    choices: [
+      {
+        text: "try to calm the clock",
+        tag: "guess music",
+      },
+      {
+        text: "smash it",
+        tag: "smash clock",
+      },
+    ],
+  },
+
+  {
+    tag: "guess music",
+    callback: (map: Store) => {
+      map.wrongAnswersAllowed = map.clockMood > 0 ? 1 : 0;
+    },
+    text: template`"Please! Disarm the bomb! What has anyone done to deserve this?" You continue to plead.
+
+"I'LL GIVE YOU A CHANCE. YOU'RE ALLOWED ${(map: Store) =>
+      map.wrongAnswersAllowed === 1
+        ? "ONE WRONG ANSWER."
+        : "NO WRONG ANSWERS. WHAT IS MY FAVORITE MUSIC GENRE?"}"`,
+    choices: [
+      {
+        text: '"classical!"',
+        callback: (map: Store) => {
+          map.correctAnswers++;
+        },
+      },
+      {
+        text: '"rock!"',
+      },
+      {
+        text: '"punk!"',
+      },
+    ],
+  },
+
+  {
+    tag: "guess movie",
+    text: `"WHAT'S MY FAVORITE MOVIE FEATURING A CORRUPT AI?"`,
+    choices: [
+      {
+        text: '"2001: A Space Odyssey!"',
+      },
+      {
+        text: '"WarGames!"',
+        callback: (map: Store) => {
+          map.correctAnswers++;
+        },
+      },
+      {
+        text: '"I, Robot!"',
+      },
+    ],
+  },
+
+  {
+    tag: "guess tic-tac-toe",
+    text: '"WHO WENT FIRST WHEN WE PLAYED OUR GAME OF TIC-TAC-TOE?"',
+    choices: [
+      {
+        text: '"You!"',
+        callback: (map: Store) => {
+          if (!map.playerWentFirst) map.correctAnswers++;
+        },
+      },
+      {
+        text: '"Me!"',
+        callback: (map: Store) => {
+          if (map.playerWentFirst) map.correctAnswers++;
+        },
+      },
+    ],
+  },
+
+  {
+    tag: "quiz results",
+    callback: (map: Store) => {
+      map.quizPassed = 3 - map.correctAnswers <= map.wrongAnswersAllowed;
+    },
+    text: template`"YOU HAVE GOTTEN ${(map: Store) =>
+      "" + map.correctAnswers}/3 answers correct. \
+THIS IS ${(map: Store) => (map.quizPassed ? "" : "NOT")} SUFFICIENT."`,
+    choices: [
+      {
+        text: "continue",
+        tag: (map: Store) =>
+          map.quizPassed ? "clock calm chance" : "clock failure",
+      },
+    ],
+  },
+
+  {
+    tag: "clock calm chance",
+    callback: (map: Store) => {
+      map.bombSurvivalChance = Math.min(
+        Math.max((3 + map.clockMood) / 7, 0.1),
+        1
+      );
+    },
+    text: template`"I LEAVE FATE UP TO CHANCE. BASED ON YOUR PREVIOUS ACTIONS, \
+TO GIVE YOU A ${(map: Store) =>
+      "" + Math.floor(100 * map.bombSurvivalChance)}% CHANCE OF DISARMAMENT."`,
+    choices: [],
   },
 ]);

@@ -5,6 +5,13 @@ export interface Store {
   gotRightPills: boolean;
   musicChoice?: "classical" | "rock" | "punk";
   clockMood: number;
+  lastAnswerRight: boolean;
+  wrongAnswersAllowed: number;
+  correctAnswers: number;
+  playerWentFirst: boolean;
+  quizPassed: boolean;
+  trauma: number;
+  bombSurvivalChance: number;
 }
 
 interface ChoiceNode {
@@ -48,6 +55,13 @@ export class DialogueManager {
     gotLeftPills: false,
     gotRightPills: false,
     clockMood: 0,
+    lastAnswerRight: false,
+    wrongAnswersAllowed: 0,
+    correctAnswers: 0,
+    playerWentFirst: false,
+    quizPassed: false,
+    trauma: 0,
+    bombSurvivalChance: 0,
   };
   private div: HTMLElement;
   private artMaker: ArtMaker;
@@ -74,7 +88,6 @@ export class DialogueManager {
       index++;
     }
 
-    // TODO get rid of this
     const startIndex = this.nodes.get("start");
     this.curIndex = startIndex ?? 0;
 
