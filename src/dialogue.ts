@@ -11,7 +11,12 @@ export interface Store {
   playerWentFirst: boolean;
   quizPassed: boolean;
   trauma: number;
-  bombSurvivalChance: number;
+  bombSurvivalPercent: number;
+  roll: number;
+  tensRoll: string;
+  onesRoll: string;
+  survivedBomb: boolean;
+  safePassage: boolean;
 }
 
 interface ChoiceNode {
@@ -61,7 +66,12 @@ export class DialogueManager {
     playerWentFirst: false,
     quizPassed: false,
     trauma: 0,
-    bombSurvivalChance: 0,
+    bombSurvivalPercent: 0,
+    roll: 0,
+    tensRoll: "",
+    onesRoll: "",
+    survivedBomb: false,
+    safePassage: false,
   };
   private div: HTMLElement;
   private artMaker: ArtMaker;

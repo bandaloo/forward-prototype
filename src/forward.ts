@@ -29,9 +29,10 @@ const artMaker = new ArtMaker(128);
 //rczxhezc (zooming blue)
 //fsfhnogn (flower)
 //axxvygkv (mouse red spiral)
+//yumtghwk (good for sea)
 
 new DialogueManager(artMaker, [
-  // bed level
+  // platforming level
   {
     seed: "ijhxlzqt",
     text:
@@ -207,7 +208,7 @@ new DialogueManager(artMaker, [
   },
 
   {
-    tag: "start",
+    //tag: "start",
     text:
       "For a moment, everything goes dark. In the next instant, you are in your own body once again. " +
       "You turn your head towards the alarm clock.",
@@ -295,6 +296,7 @@ new DialogueManager(artMaker, [
         text: "play rock",
         tag: "rock music",
         callback: (map: Store) => {
+          map.clockMood--;
           map.musicChoice = "rock";
         },
       },
@@ -302,7 +304,7 @@ new DialogueManager(artMaker, [
         text: "play punk",
         tag: "punk music",
         callback: (map: Store) => {
-          map.clockMood--;
+          map.clockMood -= 2;
           map.musicChoice = "punk";
         },
       },
@@ -366,6 +368,17 @@ new DialogueManager(artMaker, [
       {
         text: "decline",
         tag: "decline game",
+      },
+    ],
+  },
+
+  {
+    tag: "decline game",
+    text: '"You\'re no fun at all," the clock whines.',
+    choices: [
+      {
+        text: "continue",
+        tag: "clock mad",
       },
     ],
   },
@@ -464,13 +477,15 @@ new DialogueManager(artMaker, [
   },
 
   {
+    seed: "krvdqlql",
     tag: "clock mad",
     text: template`The lights in the room slowly fade to a dim red. The face of the clock\
     displays the message in red digital lettering:
 
 CALCULATION: ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 24} DEAD, \
-${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
+${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 38} INJURED
 
+The clock announces in a deep, distorted voice:
 "DETONATION IMMINENT. THIS IS YOUR FAULT."`,
     choices: [
       {
@@ -485,6 +500,23 @@ ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
   },
 
   {
+    seed: "yxwmmzen",
+    tag: "smash clock",
+    callback: (map: Store) => {
+      map.trauma += Math.max(2, -map.clockMood);
+    },
+    text:
+      "The clock instantly detonates. You see a flash and then nothing at all.",
+    choices: [
+      {
+        text: "continue",
+        tag: "sea chapter",
+      },
+    ],
+  },
+
+  {
+    seed: "evcvfuho",
     tag: "guess music",
     callback: (map: Store) => {
       map.wrongAnswersAllowed = map.clockMood > 0 ? 1 : 0;
@@ -494,7 +526,7 @@ ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
 "I'LL GIVE YOU A CHANCE. YOU'RE ALLOWED ${(map: Store) =>
       map.wrongAnswersAllowed === 1
         ? "ONE WRONG ANSWER."
-        : "NO WRONG ANSWERS. WHAT IS MY FAVORITE MUSIC GENRE?"}"`,
+        : "NO WRONG ANSWERS."} WHAT IS MY FAVORITE MUSIC GENRE?"`,
     choices: [
       {
         text: '"classical!"',
@@ -512,6 +544,7 @@ ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
   },
 
   {
+    seed: "ydhgvalo",
     tag: "guess movie",
     text: `"WHAT'S MY FAVORITE MOVIE FEATURING A CORRUPT AI?"`,
     choices: [
@@ -531,6 +564,7 @@ ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
   },
 
   {
+    seed: "ksceuxwq",
     tag: "guess tic-tac-toe",
     text: '"WHO WENT FIRST WHEN WE PLAYED OUR GAME OF TIC-TAC-TOE?"',
     choices: [
@@ -555,13 +589,13 @@ ${(map: Store) => "" + Math.max(-map.clockMood, 0.5) * 36} INJURED
       map.quizPassed = 3 - map.correctAnswers <= map.wrongAnswersAllowed;
     },
     text: template`"YOU HAVE GOTTEN ${(map: Store) =>
-      "" + map.correctAnswers}/3 answers correct. \
+      "" + map.correctAnswers}/3 ANSWERS CORRECT. \
 THIS IS ${(map: Store) => (map.quizPassed ? "" : "NOT")} SUFFICIENT."`,
     choices: [
       {
         text: "continue",
         tag: (map: Store) =>
-          map.quizPassed ? "clock calm chance" : "clock failure",
+          map.quizPassed ? "clock calm chance" : "running around",
       },
     ],
   },
@@ -569,14 +603,152 @@ THIS IS ${(map: Store) => (map.quizPassed ? "" : "NOT")} SUFFICIENT."`,
   {
     tag: "clock calm chance",
     callback: (map: Store) => {
-      map.bombSurvivalChance = Math.min(
-        Math.max((3 + map.clockMood) / 7, 0.1),
-        1
+      map.bombSurvivalPercent = Math.floor(
+        1 + 100 * Math.min(Math.max((3 + map.clockMood) / 7, 0.1), 0.9)
       );
     },
     text: template`"I LEAVE FATE UP TO CHANCE. BASED ON YOUR PREVIOUS ACTIONS, \
-TO GIVE YOU A ${(map: Store) =>
-      "" + Math.floor(100 * map.bombSurvivalChance)}% CHANCE OF DISARMAMENT."`,
+I CHOOSE YOUR CHANCE OF DISARMAMENT TO BE ${(map: Store) =>
+      "" + map.bombSurvivalPercent}%"`,
+    choices: [
+      {
+        text: "take those chances",
+      },
+    ],
+  },
+
+  {
+    callback: (map: Store) => {
+      map.roll = Math.floor(Math.random() * 100);
+      const str = ("" + map.roll).padStart(2, "0");
+      map.tensRoll = str[0] + "0";
+      map.onesRoll = str[1];
+      map.survivedBomb = map.roll < map.bombSurvivalPercent;
+    },
+    text: template`"YOU MUST ROLL BELOW ${(map: Store) =>
+      "" + map.bombSurvivalPercent} TO SURVIVE."
+
+A d100 pair of dice appear on the face of the clock. The first one spins, \
+stops, landing on ${(map: Store) =>
+      "" + map.tensRoll}. The second die lands on ${(map: Store) =>
+      "" + map.onesRoll}.
+
+"YOU ROLLED A ${(map: Store) => "" + map.roll}. ${(map: Store) =>
+      map.survivedBomb ? "YOU'RE LUCKY." : "NO SUCH LUCK."}"`,
+    choices: [
+      {
+        text: "continue",
+        tag: (map: Store) =>
+          map.survivedBomb ? "disarm bomb" : "running around",
+      },
+    ],
+  },
+
+  {
+    seed: "cfqnpmme",
+    tag: "disarm bomb",
+    text: `You reach out to hit the snooze button on the clock. The lighting in the room \
+returns to a normal hue and the face of the clock once again tells time: 12:15 PM.`,
+    choices: [{ text: "continue", tag: "sea chapter" }],
+  },
+
+  {
+    callback: (map: Store) => {
+      map.trauma += Math.max(1, -map.clockMood);
+    },
+    seed: "yxwmmzen",
+    tag: "running around",
+    text: `The face of the clock rolls over to a one minute timer, beeping \
+as each second passes. You leap out of your bed and sprint through the hallway, pounding \
+on doors trying to warn anyone at all\u2026 to no avail. The timer ends and after a short \
+pause you hear a loud crash and see a flash of light. And then, nothing.`,
+    choices: [{ text: "continue", tag: "sea chapter" }],
+  },
+
+  {
+    seed: "kdugqbly",
+    tag: "sea chapter",
+    text: template`${(map: Store) =>
+      !map.survivedBomb
+        ? "You wake up in your bed."
+        : ""} The hospital room around \
+you falls away. You find yourself on the deck of a pirate ship in a vast sea. A captain in a tricorn hat \
+greets you.
+
+"Arrr, the landlubber wakes!"`,
+    choices: [
+      {
+        text: '"Who are you?"',
+      },
+    ],
+  },
+
+  {
+    text: `"Ye have not heard tales o' me? I'm Captain Doctor Skullduggery, Scourge of the Sea, M.D.! \
+I've been takin' care of ye, overseein' yer recovery!"`,
+    choices: [
+      {
+        text: '"What\'s that up ahead?"',
+      },
+    ],
+  },
+
+  {
+    callback: (map: Store) => {
+      map.safePassage = map.trauma < 2;
+    },
+    text: template`"That's the terrible passage of terror and trauma! The more trauma, both physical and mental, ye \
+had the misfortune of accumulatin' over the the course of this here voyage to recovery, the more perilous \
+it will be."
+
+${(map: Store) =>
+  map.safePassage
+    ? "The passage is scattered with a few rocks."
+    : "The passage is a perilous gauntlet of jagged rocks and spires."} Beyond it is an array of double doors, familiar to you \
+as the exit of the intensive care unit.
+
+"Climb up to the lookout when yer ready to forge ahead. I'll be at the bow."`,
+    choices: [
+      {
+        text: "climb to the lookout",
+      },
+    ],
+  },
+
+  {
+    text: `"Full speed ahead!" you shout from the lookout.
+
+"Aye, aye!" shouts the captain. The ship picks up speed, barreling towards the passage.`,
+    choices: [
+      {
+        text: "continue",
+        tag: (map: Store) => (map.safePassage ? "escape" : "drown"),
+      },
+    ],
+  },
+
+  {
+    seed: "tffpepaa",
+    tag: "escape",
+    text: `The boat narrowly misses the scattered obstacles. You make it towards the hospital exit, \
+which seems much larger than before. The doors slowly open, emitting a brilliant light.
+
+This is the end of your journey.`,
+    choices: [],
+  },
+
+  {
+    seed: "yumtghwk",
+    tag: "drown",
+    text: template`Your eyes are focused on the doors, which grow more ghostly as you approach. \
+Suddenly, the ${() =>
+      Math.random() < 0.5
+        ? "port"
+        : "starboard"} side of your ship clips a jagged \
+spire. The deck splinters and crumbles, dropping you into the cold, tumultuous sea. Struggling, you sink \
+deeper and deeper.
+
+This is the end of your journey\u2026`,
     choices: [],
   },
 ]);
